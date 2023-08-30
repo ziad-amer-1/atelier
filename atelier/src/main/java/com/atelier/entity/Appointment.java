@@ -1,6 +1,7 @@
 package com.atelier.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,11 +23,21 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "appointment_seq")
     private Long id;
     private LocalDate date;
-    private LocalTime time;
+    private String time;
 
-    @OneToMany
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonIgnore
     private AppUser user;
 
+    @OneToOne
+    @JoinColumn(name = "order_id", referencedColumnName = "id")
+    private UserOrder order;
+
+    @Transient
+    private Long userId;
+
+    public Long getUserId() {
+        return this.user.getId();
+    }
 }

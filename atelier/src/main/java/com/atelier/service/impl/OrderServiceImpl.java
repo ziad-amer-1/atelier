@@ -15,6 +15,7 @@ import io.jsonwebtoken.Claims;
 import jakarta.persistence.criteria.Order;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,7 @@ public class OrderServiceImpl implements OrderService {
         Claims tokenClaims = tokenProvider.extractClaims(createOrderDTO.token().split(" ")[1]);
         AppUser user = userRepo.findById(Long.valueOf((String) tokenClaims.get("userId"))).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         log.info("order to user: " + user.getUsername());
-        UserOrder order = orderRepo.save(new UserOrder(user, LocalDate.now(), LocalTime.now()));
+        UserOrder order = orderRepo.save(new UserOrder(user, LocalDate.now(), LocalTime.now(), "active"));
 
         List<ProductOrder> productOrders = new ArrayList<>();
 
@@ -73,7 +74,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<UserOrder> getAllOrdersInSpecificDate(String localDate) {
-        return orderRepo.getAllOrdersInSpecificDate(localDate);
+    @Cacheable("orders")
+    public List<UserOrder> getAllOrdersInSpecificDate(String localDate, String status) {
+        if (status != null) {
+            status = status.toLowerCase();
+        }
+        return orderRepo.getAllOrdersInSpecificDate(localDate, status);
+    }
+
+    @Override
+    @Transactional
+    public String changeOrderStatus(Long id, String status) {
+        UserOrder order = orderRepo.findById(id).orElseThrow(() -> new IllegalStateException("Order with id = " + id + " not exist"));
+        order.setStatus(status.toLowerCase());
+        return "status for the order with the id = " + id + " updated to " + status;
     }
 }

@@ -45,10 +45,12 @@ public class UserOrder {
 
     private LocalDate date;
     private LocalTime time;
+    private String status;
 
-    public UserOrder(AppUser user, LocalDate date, LocalTime time) {
+    public UserOrder(AppUser user, LocalDate date, LocalTime time, String status) {
         this.user = user;
         this.date = date;
         this.time = time;
+        this.status = status;
     }
 }
