@@ -1,11 +1,13 @@
 package com.atelier.config;
 
 import com.atelier.repository.UserRepo;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -20,6 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Collections;
@@ -54,18 +57,18 @@ public class ApplicationConfig {
     }
 
 
-//    @Bean
-//    public AuthenticationEntryPoint authenticationEntryPoint() {
-//        return ((request, response, authException) -> {
-//            response.setContentType("application/json");
-//            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-//            String errorMessage = "Authentication Failed: " + authException.getMessage();
-//            if (authException.getCause() != null) {
-//                errorMessage = authException.getCause().getMessage();
-//            }
-//            response.getWriter().write("{\"error\":\"" + errorMessage + "\"}");
-//        });
-//    }
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return ((request, response, authException) -> {
+            response.setContentType("application/json");
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            String errorMessage = "Authentication Failed: " + authException.getMessage();
+            if (authException.getCause() != null) {
+                errorMessage = authException.getCause().getMessage();
+            }
+            response.getWriter().write("{\"error\":\"" + errorMessage + "\"}");
+        });
+    }
 
     @Bean
     public FilterRegistrationBean<CorsFilter> corsFilter() {
@@ -87,8 +90,14 @@ public class ApplicationConfig {
     public WebMvcConfigurer corsConfigure() {
         return new WebMvcConfigurer() {
             @Override
+            public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
+                registry.addResourceHandler("/images/**")
+                        .addResourceLocations("classpath:/static/");
+            }
+
+            @Override
             public void addCorsMappings(
-                    @NotNull CorsRegistry registry
+                    @NonNull CorsRegistry registry
             ) {
                 registry
                         .addMapping("/**")

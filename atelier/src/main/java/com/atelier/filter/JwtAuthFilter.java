@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +22,7 @@ import static com.atelier.constants.AtelierConstants.TOKEN_PREFIX;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -37,6 +39,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader("Authorization");
         final String username;
         final String jwt;
+
+        log.info("-- auth filter --");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -63,12 +67,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
 
         } else {
-            logger.warn("No Token Provided");
+            log.warn("No Token Provided");
         }
         filterChain.doFilter(request, response);
     }
 
     private boolean isAuthenticationEndpoint(HttpServletRequest request) {
+        log.info("servletPath: " + request.getServletPath());
         return request.getServletPath().endsWith("/user/login") || request.getServletPath().endsWith("/user/register");
     }
 }
